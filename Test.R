@@ -11,7 +11,7 @@ SV_raw <- read_csv(
 SV <- SV_raw %>%
   mutate(
     Site = parse_integer(Site),
-    isPlanned = Visits %in% c('Visit1','Visit2','Visit3')
+    isPlanned = Visits %in% c('Visit1', 'Visit2', 'Visit3')
   ) %>%
   select(-Visits)
 rm(SV_raw)
