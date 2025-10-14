@@ -41,7 +41,7 @@ AE_per_site <- AE %>%
   group_by(Site) %>% 
   summarise(AEs = n(), AESubjects = length(unique(Subject)))
 
-# Calculate AE rate per visit.
+# Calculate AE rate per visit using binomial distribution.
 AE_rate_per_visit <- SV_per_site %>% 
   left_join(AE_per_site, by = 'Site') %>% 
   filter(AEs != 0) %>% 
@@ -55,7 +55,7 @@ AE_rate_per_visit <- AE_rate_per_visit %>%
     p_x_within_plus_minus_1  = sum(dbinom(AEs-1:AEs+1, PlannedVisits, p))
   )
 
-# Calculate AE rate per subject.
+# Calculate AE rate per subject using binomial distribution.
 AE_rate_per_subject <- SV_per_site %>% 
   left_join(AE_per_site, by = 'Site') %>% 
   filter(AEs != 0) %>% 
@@ -67,3 +67,18 @@ AE_rate_per_subject <- AE_rate_per_subject %>%
   mutate(
     p_x_greater_than_success = 1-sum(dbinom(0:AESubjects, SVSubjects, p))
   )
+
+# Calculate AE rate per subject using multinomial distribution.
+xs <- AE %>%
+  group_by(Site, Subject) %>%
+  summarise(n_ae = n(), .groups = 'drop') %>%
+  mutate(bin = paste0('x', n_ae + 1L)) %>% 
+  count(Site, bin, name = 'n') %>%
+  pivot_wider(names_from = bin, values_from = n, values_fill = 0) %>%
+  right_join(distinct(AE_per_site, Site), by = 'Site') %>%
+  mutate(across(c(x2, x3, x4, x5), ~ replace_na(.x, 0))) %>%
+  select(Site, x2, x3, x4, x5) %>%
+  arrange(Site) %>% 
+  left_join(SV_per_site, by = 'Site') %>% 
+  mutate(x1 = SVSubjects - (x2 + 2 * x3 + 3 * x4 + 4 * x5)) %>% 
+  select(Site, SVSubjects, x1, x2, x3, x4, x5)
