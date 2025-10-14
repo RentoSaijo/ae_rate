@@ -3,7 +3,7 @@ suppressMessages(library(tidyverse))
 
 # Read SV.
 SV_raw <- read_csv(
-  'SV001.csv',
+  'data/SV001.csv',
   col_types = cols(.default = col_character()),
   show_col_types = FALSE
 ) %>% 
@@ -18,7 +18,7 @@ rm(SV_raw)
 
 # Read AE.
 AE_raw <- read_csv(
-  'AE001.csv',
+  'data/AE001.csv',
   col_types = cols(.default = col_character()),
   show_col_types = FALSE
 ) %>% 
