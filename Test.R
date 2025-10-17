@@ -67,7 +67,7 @@ AE_rate_per_subject <- AE_rate_per_subject %>%
     p_x_greater_than_success = 1-sum(dbinom(0:AESubjects, SVSubjects, p))
   )
 
-# Calculate AE rate per subject using multinomial distribution.
+# Calculate AE rate per subject for multinomial distribution.
 xs <- AE %>%
   group_by(Site, Subject) %>%
   summarise(n_ae = n(), .groups = 'drop') %>%
@@ -88,19 +88,16 @@ p4 <- sum(xs$x4)/sum(xs$SVSubjects)
 p5 <- sum(xs$x5)/sum(xs$SVSubjects)
 ps <- c(p1, p2, p3, p4, p5)
 
-# ---- helper: P(Y_i <= U_i for all i), Y ~ Multinomial(n, q) ----
+# Helper: P(Y_i <= U_i for all i), Y ~ Multinomial(n, q)
 upper_leq_mult <- function(n, q, U) {
   K <- length(q)
   if (sum(U) < n) return(0)
   if (K == 1) return(as.numeric(n <= U[1]))
-  
   q1 <- q[1]; U1 <- U[1]
-  lo <- max(0L, n - sum(U[-1]))   # leave enough for the rest
+  lo <- max(0L, n - sum(U[-1]))
   hi <- min(U1, n)
   if (hi < lo) return(0)
-  
-  if (1 - q1 < 1e-15) return(as.numeric(n <= U1))  # handle q1 ~ 1
-  
+  if (1 - q1 < 1e-15) return(as.numeric(n <= U1))
   s <- 0
   for (y in lo:hi) {
     s <- s + dbinom(y, size = n, prob = q1) *
@@ -109,17 +106,13 @@ upper_leq_mult <- function(n, q, U) {
   s
 }
 
-# ---- exact union: P(any reporting category exceeds its observed count) ----
-# This equals 1 - P(X2<=x2, X3<=x3, X4<=x4, X5<=x5).
-# (Note X1>=x1 then follows automatically from the sum constraint.)
+# 1 - P(X2<=x2, X3<=x3, X4<=x4, X5<=x5)
 union_reporting_prob_exact <- function(n, p, x) {
   stopifnot(length(p) == 5, length(x) == 5, abs(sum(p) - 1) < 1e-10)
   p1 <- p[1]
-  q  <- p[-1] / (1 - p1)  # conditional probs for 2..5 given not in 1
-  U  <- x[-1]             # caps for 2..5 in the complement
-  
-  # Sum over X1 = t. Only t >= n - sum(U) contributes; that's t >= x1.
-  tmin <- max(0L, n - sum(U))     # equals x1 when x1 = n - sum_{i>=2} x_i
+  q  <- p[-1]/(1 - p1)
+  U  <- x[-1]
+  tmin <- max(0L, n - sum(U))
   comp <- 0
   for (t in tmin:n) {
     m <- n - t
@@ -128,7 +121,7 @@ union_reporting_prob_exact <- function(n, p, x) {
   1 - comp
 }
 
-# Per-site p-values for "any reporting category > observed"
+# Calculate the union probability for each site.
 xs <- xs %>%
   rowwise() %>%
   mutate(
