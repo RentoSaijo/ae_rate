@@ -2,8 +2,8 @@
 
 To-do's
 - [X] Complete Analysis
-- [ ] Translate to Python
-- [ ] Visualize Results
-- [ ] Visualize Assumptions
-- [ ] Make Presentation
+- [X] Translate to Python
+- [X] Visualize Results
+- [X] Visualize Assumptions
+- [X] Make Presentation
 - [ ] Make Script
